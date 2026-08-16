@@ -1,23 +1,11 @@
-import express from "express";
 import { createServer } from "node:http";
-import morgan from "morgan";
 
+import { app } from "./app.js";
 import config from "./config/config.js";
-import authRouter from "./routes/auth.route.js";
-
-const app = express();
-const server = createServer(app);
 
 const PORT = config.PORT;
 
-app.use(express.json());
-app.use(morgan("dev"));
-
-app.use("/api/auth", authRouter);
-
-app.get("/", (req, res) => {
-    res.send("Server Running");
-});
+const server = createServer(app);
 
 server.listen(PORT, () => {
     console.log(`Backend server listening on port: ${PORT}`);
