@@ -2,10 +2,14 @@ import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
 import argon2 from "argon2";
 import { prisma } from "../config/db.js";
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import config from "../config/config.js";
 
-export async function register(req: Request, res: Response) {
+export async function register(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
     try {
         const { email, username, password } = req.body;
 
@@ -101,15 +105,11 @@ export async function register(req: Request, res: Response) {
             accessToken,
         });
     } catch (error) {
-        console.error("REGISTER ERROR:", error);
-
-        return res.status(500).json({
-            message: "Internal server error",
-        });
+        next(error);
     }
 }
 
-export async function login(req: Request, res: Response) {
+export async function login(req: Request, res: Response, next: NextFunction) {
     try {
         const { email, password } = req.body;
 
@@ -191,10 +191,152 @@ export async function login(req: Request, res: Response) {
             accessToken,
         });
     } catch (error) {
-        console.error("LOGIN ERROR:", error);
+        next(error);
+    }
+}
 
-        return res.status(500).json({
-            message: "Internal server error",
+export async function refresh(req: Request, res: Response, next: NextFunction) {
+    try {
+        const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+            return res.status(401).json({
+                message: "Refresh token is required",
+            });
+        }
+
+        const payload = jwt.verify(refreshToken, config.JWT_SECRET);
+
+        if (typeof payload !== "object" || !payload.userId || !payload.jti) {
+            return res.status(401).json({
+                message: "Invalid token",
+            });
+        }
+
+        const refreshTokenHash = crypto
+            .createHash("sha256")
+            .update(refreshToken)
+            .digest("hex");
+
+        const session = await prisma.session.findUnique({
+            where: {
+                tokenHash: refreshTokenHash,
+                revoked: false,
+            },
         });
+
+        if (!session) {
+            return res.status(401).json({
+                message: "Invalid token",
+            });
+        }
+
+        if (session.userId !== payload.userId) {
+            return res.status(401).json({
+                message: "Invalid token",
+            });
+        }
+
+        const accessToken = jwt.sign(
+            {
+                userId: session.userId,
+                sessionId: session.id,
+            },
+            config.JWT_SECRET,
+            {
+                expiresIn: "15m",
+            },
+        );
+
+        const newRefreshToken = jwt.sign(
+            {
+                userId: session.userId,
+                jti: crypto.randomUUID(),
+            },
+            config.JWT_SECRET,
+            {
+                expiresIn: "7d",
+            },
+        );
+
+        const newRefreshTokenHash = crypto
+            .createHash("sha256")
+            .update(newRefreshToken)
+            .digest("hex");
+
+        await prisma.session.update({
+            where: {
+                id: session.id,
+            },
+            data: {
+                tokenHash: newRefreshTokenHash,
+            },
+        });
+
+        res.cookie("refreshToken", newRefreshToken, {
+            httpOnly: true,
+            // secure: true,
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        return res.status(200).json({
+            message: "Access token refreshed successfully",
+            accessToken,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function logout(req: Request, res: Response, next: NextFunction) {
+    try {
+        const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+            return res.status(401).json({
+                message: "Refresh token is required",
+            });
+        }
+
+        const payload = jwt.verify(refreshToken, config.JWT_SECRET);
+
+        if (typeof payload !== "object" || !payload.userId || !payload.jti) {
+            return res.status(401).json({
+                message: "Invalid token",
+            });
+        }
+
+        const refreshTokenHash = crypto
+            .createHash("sha256")
+            .update(refreshToken)
+            .digest("hex");
+
+        const result = await prisma.session.updateMany({
+            where: {
+                tokenHash: refreshTokenHash,
+                revoked: false,
+            },
+            data: {
+                revoked: true,
+            },
+        });
+
+        if (result.count === 0) {
+            return res.status(401).json({
+                message: "Invalid token",
+            });
+        }
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            sameSite: "strict",
+        });
+
+        return res.status(200).json({
+            message: "Logout successful",
+        });
+    } catch (error) {
+        next(error);
     }
 }

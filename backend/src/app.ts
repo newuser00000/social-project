@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 
 import authRouter from "./routes/auth.route.js";
 import authenticate from "./middlewares/authenticate.js";
+import errorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
 
@@ -21,9 +22,11 @@ app.use(morgan("dev"));
 app.use("/api/auth", authRouter);
 
 app.get("/", authenticate, (req, res) => {
-    res.json({
+    res.status(200).json({
         message: "Authenticated",
     });
 });
+
+app.use(errorHandler);
 
 export { app };

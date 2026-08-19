@@ -9,4 +9,8 @@ authRouter.post("/register", validate(registerSchema), authController.register);
 
 authRouter.post("/login", validate(loginSchema), authController.login);
 
+authRouter.post("/refresh", authController.refresh);
+
+authRouter.post("/logout", authController.logout);
+
 export default authRouter;
