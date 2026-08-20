@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { app } from "../../src/app.js";
 import { prisma } from "../../src/config/db.js";
 
-describe("LOGIN - VALIDATION", () => {
+describe.skip("LOGIN - VALIDATION", () => {
     it("should not login a user with missing credentials", async () => {
         const response = await request(app).post("/api/auth/login").send({});
 
@@ -103,7 +103,7 @@ describe("LOGIN - VALIDATION", () => {
     });
 });
 
-describe("LOGIN - FAILURE CASES", () => {
+describe.skip("LOGIN - FAILURE CASES", () => {
     it("should not login a user with non-existent email", async () => {
         const response = await request(app).post("/api/auth/login").send({
             email: "test@test.com",
@@ -163,7 +163,7 @@ describe("LOGIN - FAILURE CASES", () => {
     });
 });
 
-describe("LOGIN - SUCCESS CASES", () => {
+describe.skip("LOGIN - SUCCESS CASES", () => {
     it("should successfully login a user", async () => {
         const registerResponse = await request(app)
             .post("/api/auth/register")

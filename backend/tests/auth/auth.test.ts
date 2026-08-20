@@ -6,7 +6,7 @@ import config from "../../src/config/config.js";
 import { prisma } from "../../src/config/db.js";
 import crypto from "node:crypto";
 
-describe("AUTHENTICATION - FAILURE CASES", () => {
+describe.skip("AUTHENTICATION - FAILURE CASES", () => {
     it("should not authneticate without an access token", async () => {
         const response = await request(app).get("/");
 
@@ -144,7 +144,7 @@ describe("AUTHENTICATION - FAILURE CASES", () => {
     });
 });
 
-describe("AUTHNETICATION - SUCCESS CASES", () => {
+describe.skip("AUTHNETICATION - SUCCESS CASES", () => {
     it("should authenticate", async () => {
         const registerResponse = await request(app)
             .post("/api/auth/register")

@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import authRouter from "./routes/auth.route.js";
+import userRouter from "./routes/user.route.js";
 import authenticate from "./middlewares/authenticate.js";
 import errorHandler from "./middlewares/errorHandler.js";
 
@@ -20,6 +21,8 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 
 app.use("/api/auth", authRouter);
+
+app.use("/api/users", authenticate, userRouter);
 
 app.get("/", authenticate, (req, res) => {
     res.status(200).json({

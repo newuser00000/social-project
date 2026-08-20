@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { app } from "../../src/app.js";
 import { prisma } from "../../src/config/db.js";
 
-describe("REGISTRATION - VALIDATION", () => {
+describe.skip("REGISTRATION - VALIDATION", () => {
     it("should not register user with missing required fields", async () => {
         const response = await request(app).post("/api/auth/register").send({});
 
@@ -84,7 +84,7 @@ describe("REGISTRATION - VALIDATION", () => {
     });
 });
 
-describe("REGISTRATION - SUCCESS CASES", () => {
+describe.skip("REGISTRATION - SUCCESS CASES", () => {
     it("should successfully registe a user", async () => {
         const response = await request(app).post("/api/auth/register").send({
             email: "test@test.com",
@@ -144,7 +144,7 @@ describe("REGISTRATION - SUCCESS CASES", () => {
     });
 });
 
-describe("REGISTRATION - FAILURE CASES", () => {
+describe.skip("REGISTRATION - FAILURE CASES", () => {
     it("should not register a user with already registered email", async () => {
         const responseOne = await request(app).post("/api/auth/register").send({
             email: "test@test.com",

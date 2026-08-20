@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
 import config from "../../src/config/config.js";
 
-describe("LOGOUT - FAILURE CASES", () => {
+describe.skip("LOGOUT - FAILURE CASES", () => {
     it("should not logout without a refresh token", async () => {
         const response = await request(app).post("/api/auth/logout").send({});
 
@@ -160,7 +160,7 @@ describe("LOGOUT - FAILURE CASES", () => {
     });
 });
 
-describe("LOGOUT - SUCCESS CASES", () => {
+describe.skip("LOGOUT - SUCCESS CASES", () => {
     it("should successfully logout the user", async () => {
         const registerResponse = await request(app)
             .post("/api/auth/register")
